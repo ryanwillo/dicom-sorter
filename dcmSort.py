@@ -19,8 +19,10 @@ class TextRedirector(object):
 
 def sort_dicom_files(input_path, progress_callback):
     # Dictionary to track series and their files
-    series_dict = {}
+    # series_dict = {}
 
+    # Define the output path
+    output_path = os.path.join(input_path, 'sorted')
     # Loop through each file in the directory
     for filename in os.listdir(input_path):
         file_path = os.path.join(input_path, filename)
@@ -33,24 +35,22 @@ def sort_dicom_files(input_path, progress_callback):
                 series_id = dicom_file.SeriesDescription
 
                 # Add file to the series dictionary
-                if series_id not in series_dict:
-                    series_dict[series_id] = []
-                series_dict[series_id].append(file_path)
+                # if series_id not in series_dict:
+                    # series_dict[series_id] = []
+                # series_dict[series_id].append(file_path)
+
+                # Make the full output path for a series
+                series_folder = os.path.join(output_path, series_id)
+                # Create output directory, if necessary
+                if not os.path.exists(series_folder):
+                    os.makedirs(series_folder)
+                    print(f"Created folder for {series_id}\n")
+                shutil.copy(file_path, series_folder)
+                print(f"Copied {file_path} to {series_folder}\n")
                 progress_callback(file_path)
             except Exception as e:
                 print(f"Failed to read {file_path}: {e}")
-        
-
-    # Create output directory, subfolders, and move files
-    output_path = os.path.join(input_path, 'sorted')
-    for series_id, files in series_dict.items():
-        series_folder = os.path.join(output_path, series_id)
-        if not os.path.exists(series_folder):
-            os.makedirs(series_folder)
-            print(f"Created folder for {series_id}")
-        for file in files:
-            shutil.copy(file, series_folder)
-            print(f"Copied {file} to {series_folder}")
+            
 
 def run_sorting_in_thread(input_path, progress_callback):
 
@@ -92,7 +92,7 @@ def main():
     sys.stdout = TextRedirector(log_text)
 
     def progress_callback(current_file):
-        log_text.insert(tk.END, f"Processed {current_file}")
+        log_text.insert(tk.END, f"Processed {current_file}\n")
         log_text.see(tk.END)
 
     # Run Button
